@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systems Implementation Report — Create More Productions</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #cc0000;
+    --red-light: #fff0f0;
+    --red-mid: #fecaca;
+    --green: #15803d;
+    --green-light: #dcfce7;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --ink: #0f0f0f;
+    --ink2: #333;
+    --ink3: #555;
+    --muted: #888;
+    --border: #e5e5e5;
+    --bg: #f9f8f6;
+    --white: #ffffff;
+    --sidebar: 280px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar);
+    flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    padding: 28px 24px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-text h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .brand-text p {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .sidebar-label {
+    padding: 18px 24px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #ccc;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+    position: relative;
+  }
+  .nav-item:hover { background: #fafafa; }
+  .nav-item.active {
+    background: var(--red-light);
+    border-left-color: var(--red);
+  }
+
+  .nav-icon { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+
+  .nav-text { flex: 1; min-width: 0; }
+  .nav-text .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .nav-item.active .nav-text .label { color: var(--red); }
+
+  .nav-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: #f0f0f0;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .nav-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--red);
+    opacity: 0.6;
+  }
+  .nav-pct {
+    font-size: 10px;
+    color: #bbb;
+    margin-top: 2px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar);
+    flex: 1;
+    padding: 60px 64px 100px;
+    max-width: calc(var(--sidebar) + 820px);
+  }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── PAGE HEADER ── */
+  .page-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .page-subtitle {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 40px;
+    line-height: 1.5;
+  }
+
+  /* ── HERO CARD ── */
+  .hero-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+  }
+  .hero-stat { text-align: center; }
+  .hero-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--red);
+    line-height: 1;
+  }
+  .hero-stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .hero-divider { width: 1px; height: 80px; background: var(--border); flex-shrink: 0; }
+  .hero-info h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .hero-info p { font-size: 15px; color: var(--ink3); line-height: 1.6; }
+
+  /* ── PRIORITY GRID ── */
+  .priority-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .priority-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .priority-card:hover {
+    border-color: var(--red-mid);
+    box-shadow: 0 4px 20px rgba(204,0,0,0.08);
+    transform: translateY(-2px);
+  }
+
+  .pc-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .pc-icon { font-size: 28px; }
+  .pc-meta {}
+  .pc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .pc-count { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pc-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 5px;
+    border-radius: 3px;
+    background: #f0f0f0;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--red);
+  }
+  .pc-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* ── METRICS TABLE ── */
+  .metrics-section { margin-bottom: 36px; }
+  .section-heading {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+
+  .metrics-table {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 28px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .metrics-row:last-child { border-bottom: none; }
+  .metrics-row .metric-name { font-size: 15px; color: var(--ink2); font-weight: 500; }
+  .badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge-red { background: #fee2e2; color: var(--red); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .arrow-sep { color: #ccc; font-size: 14px; }
+
+  /* ── PRIORITY PAGE ── */
+  .priority-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ph-ring { flex-shrink: 0; text-align: center; }
+  .ph-ring .big-pct {
+    font-family: 'Syne', sans-serif;
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--red);
+    line-height: 1;
+  }
+  .ph-ring .ring-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .ph-info { flex: 1; }
+  .ph-eyebrow { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .ph-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .ph-counts { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .status-complete { background: var(--green-light); color: var(--green); }
+  .status-progress { background: var(--amber-light); color: var(--amber); }
+
+  /* ── DETAIL BLOCK ── */
+  .detail-block {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .detail-block h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .detail-body {
+    font-size: 15px;
+    color: var(--ink3);
+    line-height: 1.85;
+    white-space: pre-line;
+  }
+
+  /* ── DELIVERABLES ── */
+  .deliverable-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .deliverable-item:last-child { border-bottom: none; }
+  .di-icon { font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+  .di-text {
+    flex: 1;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .di-done { color: var(--ink2); }
+  .di-todo { color: #bbb; }
+  .di-link {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 11px;
+    color: var(--red);
+    text-decoration: none;
+    background: var(--red-light);
+    padding: 2px 9px;
+    border-radius: 5px;
+    font-weight: 700;
+  }
+
+  /* ── SOP LIBRARY ── */
+  .sop-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .sop-item:last-child { border-bottom: none; }
+  .sop-label { flex: 1; font-size: 15px; color: var(--ink2); }
+  .sop-todo .sop-label { color: #bbb; }
+
+  /* ── BLOCKERS ── */
+  .blockers-intro {
+    font-size: 16px;
+    color: var(--ink3);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .blocker-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .blocker-group-title.high { color: var(--red); }
+  .blocker-group-title.medium { color: var(--amber); }
+
+  .blocker-card {
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .blocker-card.high {
+    background: #fff8f8;
+    border: 1px solid var(--red-mid);
+  }
+  .blocker-card.medium {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+  }
+  .blocker-bullet {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .blocker-text {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink2);
+  }
+
+  .cta-card {
+    background: var(--ink);
+    border-radius: 20px;
+    padding: 48px;
+    text-align: center;
+    margin-top: 40px;
+  }
+  .cta-label { font-size: 13px; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+  .cta-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 80px;
+    font-weight: 800;
+    color: var(--red);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .cta-sub { font-size: 17px; color: #888; line-height: 1.6; }
+
+  /* ── DIVIDERS & SPACING ── */
+  .spacer { height: 32px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; }
+    .sidebar-brand .brand-text,
+    .sidebar-label,
+    .nav-text,
+    .nav-bar,
+    .nav-pct { display: none; }
+    .main { margin-left: 60px; padding: 32px 24px 80px; }
+    .priority-grid { grid-template-columns: 1fr; }
+    .hero-card { flex-direction: column; text-align: center; }
+    .hero-divider { width: 80px; height: 1px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <svg width="34" height="34" viewBox="0 0 200 200" fill="none">
+      <path d="M100 15 A85 85 0 1 0 100 185 L100 162 A62 62 0 1 1 100 38 Z" fill="#cc0000"/>
+      <rect x="78" y="52" width="18" height="96" rx="3" fill="#111" transform="skewX(-12) translate(8,0)"/>
+      <rect x="103" y="52" width="18" height="96" rx="3" fill="#111" transform="skewX(-12) translate(8,0)"/>
+      <rect x="128" y="52" width="18" height="96" rx="3" fill="#111" transform="skewX(-12) translate(8,0)"/>
+    </svg>
+    <div class="brand-text">
+      <h2>Create More</h2>
+      <p>Productions</p>
+    </div>
+  </div>
+
+  <div class="sidebar-label">Report Sections</div>
+
+  <a class="nav-item active" href="#" onclick="showSection('overview', this)">
+    <span class="nav-icon">🏠</span>
+    <div class="nav-text">
+      <div class="label">Overview</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('p1', this)">
+    <span class="nav-icon">⚡</span>
+    <div class="nav-text">
+      <div class="label">Central Nervous System</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:95%"></div></div>
+      <div class="nav-pct">8/10 done</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('p2', this)">
+    <span class="nav-icon">🤖</span>
+    <div class="nav-text">
+      <div class="label">Workflow Machine</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:90%"></div></div>
+      <div class="nav-pct">15/17 done</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('p3', this)">
+    <span class="nav-icon">📚</span>
+    <div class="nav-text">
+      <div class="label">Knowledge Base</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:85%"></div></div>
+      <div class="nav-pct">7/9 done</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('p4', this)">
+    <span class="nav-icon">💰</span>
+    <div class="nav-text">
+      <div class="label">Hiring & Payment</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:80%"></div></div>
+      <div class="nav-pct">10/13 done</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('p5', this)">
+    <span class="nav-icon">🎩</span>
+    <div class="nav-text">
+      <div class="label">Client Experience</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:60%"></div></div>
+      <div class="nav-pct">5/9 done</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('blockers', this)">
+    <span class="nav-icon">🚨</span>
+    <div class="nav-text">
+      <div class="label">Action Required</div>
+    </div>
+  </a>
+
+  <a class="nav-item" href="#" onclick="showSection('sops', this)">
+    <span class="nav-icon">📄</span>
+    <div class="nav-text">
+      <div class="label">SOP Library</div>
+      <div class="nav-bar"><div class="nav-bar-fill" style="width:85%"></div></div>
+      <div class="nav-pct">11/13 docs</div>
+    </div>
+  </a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- ===== OVERVIEW ===== -->
+  <div id="overview" class="section active">
+    <div class="page-eyebrow">Month 1 · March 2026 · Prepared by Nicholas</div>
+    <h1 class="page-title">Systems Implementation<br>Report</h1>
+    <p class="page-subtitle">A full breakdown of everything built, what's still in progress, and exactly what's needed from you to hit the 45-day completion target.</p>
+
+    <div class="hero-card">
+      <div class="hero-stat">
+        <div class="hero-pct">82%</div>
+        <div class="hero-stat-label">Overall Complete</div>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-info">
+        <h3>The heavy lifting is done. ✅</h3>
+        <p>The entire ClickUp workspace, automation engine, knowledge base, hiring system, and client experience infrastructure has been built from the ground up. What remains is a handful of decisions from you and a few outstanding setups that require your input. The 45-day target is still on track — but only if the blockers below are resolved quickly.</p>
+      </div>
+    </div>
+
+    <div class="priority-grid">
+      <div class="priority-card" onclick="showSection('p1', null)">
+        <div class="pc-header">
+          <div class="pc-icon">⚡</div>
+          <div class="pc-meta">
+            <div class="pc-title">Central Nervous System</div>
+            <div class="pc-count">8 of 10 deliverables done</div>
+          </div>
+        </div>
+        <div class="pc-pct">95%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div>
+        <a class="pc-link">View details →</a>
+      </div>
+
+      <div class="priority-card" onclick="showSection('p2', null)">
+        <div class="pc-header">
+          <div class="pc-icon">🤖</div>
+          <div class="pc-meta">
+            <div class="pc-title">Workflow Machine</div>
+            <div class="pc-count">15 of 17 deliverables done</div>
+          </div>
+        </div>
+        <div class="pc-pct">90%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>
+        <a class="pc-link">View details →</a>
+      </div>
+
+      <div class="priority-card" onclick="showSection('p3', null)">
+        <div class="pc-header">
+          <div class="pc-icon">📚</div>
+          <div class="pc-meta">
+            <div class="pc-title">Knowledge Base</div>
+            <div class="pc-count">7 of 9 deliverables done</div>
+          </div>
+        </div>
+        <div class="pc-pct">85%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:85%"></div></div>
+        <a class="pc-link">View details →</a>
+      </div>
+
+      <div class="priority-card" onclick="showSection('p4', null)">
+        <div class="pc-header">
+          <div class="pc-icon">💰</div>
+          <div class="pc-meta">
+            <div class="pc-title">Hiring & Payment</div>
+            <div class="pc-count">10 of 13 deliverables done</div>
+          </div>
+        </div>
+        <div class="pc-pct">80%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+        <a class="pc-link">View details →</a>
+      </div>
+
+      <div class="priority-card" onclick="showSection('p5', null)" style="grid-column: 1 / -1;">
+        <div class="pc-header">
+          <div class="pc-icon">🎩</div>
+          <div class="pc-meta">
+            <div class="pc-title">Client Experience</div>
+            <div class="pc-count">5 of 9 deliverables done — In Progress</div>
+          </div>
+        </div>
+        <div class="pc-pct">60%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
+        <a class="pc-link">View details →</a>
+      </div>
+    </div>
+
+    <div class="metrics-section">
+      <h2 class="section-heading">📊 Before vs. After — What This System Changes</h2>
+      <div class="metrics-table">
+        <div class="metrics-row" style="background:#f9f9f9; font-size:11px; font-weight:700; color:#aaa; letter-spacing:1.5px; text-transform:uppercase;">
+          <span>Metric</span><span>Before</span><span>After</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">Manual hours/week on ops</span>
+          <span class="badge badge-red">~20 hrs</span>
+          <span class="badge badge-green">&lt; 5 hrs</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">Deadline hit rate</span>
+          <span class="badge badge-red">~60%</span>
+          <span class="badge badge-green">80%+</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">Contract → first shoot timeline</span>
+          <span class="badge badge-red">Inconsistent</span>
+          <span class="badge badge-green">10–14 days</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">Issue response time</span>
+          <span class="badge badge-red">24–48 hrs</span>
+          <span class="badge badge-green">&lt; 24 hrs</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">New hire onboarding</span>
+          <span class="badge badge-red">Days of back-and-forth</span>
+          <span class="badge badge-green">5 days self-managed</span>
+        </div>
+        <div class="metrics-row">
+          <span class="metric-name">Payment processing fees</span>
+          <span class="badge badge-red">~$600/mo (PayPal)</span>
+          <span class="badge badge-green">&lt; $50/mo (crypto)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== P1: CENTRAL NERVOUS SYSTEM ===== -->
+  <div id="p1" class="section">
+    <div class="priority-header">
+      <div class="ph-ring">
+        <div class="big-pct">95%</div>
+        <div class="ring-label">Complete</div>
+      </div>
+      <div class="ph-info">
+        <div class="ph-eyebrow">Priority 1</div>
+        <h1 class="ph-title">⚡ Central Nervous System</h1>
+        <div class="ph-counts">8 of 10 deliverables complete</div>
+        <span class="status-badge status-complete">✅ Built</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h3>What Was Built</h3>
+      <div class="detail-body">The entire ClickUp workspace has been built from scratch with locked-down permissions across all spaces. Every client gets their own folder with month-by-month lists and 20 individual reel tasks, each with custom fields for script status, shoot date, editor assigned, and Frame.io link.
+
+The Sales CRM pipeline is live with 7 stages — from New Lead all the way through to Won/Lost. The intake form auto-populates client data into ClickUp the moment a client submits it. No manual entry. No missed fields.
+
+Google Drive is synced to all relevant documents across the workspace, so every file lives in both places and the team can always find what they need.</div>
+    </div>
+
+    <div class="detail-block">
+      <h3>Deliverables</h3>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Full ClickUp workspace architecture (all spaces, folders, lists)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">CLIENTS space — month-by-month lists, 20 reel tasks per client, custom fields (script status, shoot date, editor assigned, Frame.io link)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">OPERATIONS space — Sales CRM, Onboarding Queue, Research & Strategy, Content Calendar</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">TEAM space — editor roster, capacity tracking, encrypted payment fields</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">RESOURCES space — Wiki, SOPs Library, Templates Hub</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">ClickUp intake form built & auto-populates client account on submission</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">New team member form built & live <a href="https://app.clickup.com/90131355789/v/fm/2ky3yp4d-10313" target="_blank" class="di-link">View →</a></span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Sales pipeline stages configured (New Lead → Won/Lost)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Slack migration & deletion — targeted for Day 30</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Landing page webhook (ClickFunnels → ClickUp CRM) — pending Shota's lead capture decision</span></div>
+    </div>
+
+    <div class="detail-block" style="background:#fff8f8; border-color:#fecaca;">
+      <h3 style="color:var(--red);">🚨 Needs Your Input</h3>
+      <div class="detail-body">→ <strong>CRM lead capture strategy decision needed:</strong> Should leads be captured from the landing page only, or should a universal ClickUp form be used across all channels — social, website, and referrals? This decision is holding up the webhook build.</div>
+    </div>
+  </div>
+
+  <!-- ===== P2: WORKFLOW MACHINE ===== -->
+  <div id="p2" class="section">
+    <div class="priority-header">
+      <div class="ph-ring">
+        <div class="big-pct">90%</div>
+        <div class="ring-label">Complete</div>
+      </div>
+      <div class="ph-info">
+        <div class="ph-eyebrow">Priority 2</div>
+        <h1 class="ph-title">🤖 Workflow Machine</h1>
+        <div class="ph-counts">15 of 17 deliverables complete</div>
+        <span class="status-badge status-complete">✅ Built</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h3>What Was Built</h3>
+      <div class="detail-body">The entire production workflow runs on autopilot from contract signed to all 20 reels approved. Every task auto-assigns to the right person with a pre-calculated due date. There are zero manual handoffs.
+
+The onboarding chain is 9 steps long — the moment a client is marked as Won in the CRM, a welcome email goes out, the intake form is sent, brand assets tasks get auto-assigned with a 2-day deadline, the 6-month roadmap auto-assigns to Shota, and so on. No one has to remember to do any of it.
+
+The <strong>Deadline Escalation Ladder</strong> runs automatically in 3 tiers:
+  • Miss the 48hr first draft → task turns yellow, Adnan gets a DM
+  • Miss Week 1 (10 reels not done) → task turns orange, AI suggests reassignment
+  • Miss Week 2 (all 20 not done) → formal written warning auto-generated, Shota is notified, editor flagged for removal next month
+
+The Month Template means zero manual setup for recurring months. One click to copy, populate dates, done. 20+ automations are deployed and live across the workspace.</div>
+    </div>
+
+    <div class="detail-block">
+      <h3>Deliverables</h3>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">9-step client onboarding chain with fully automated handoffs</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">20+ automations deployed (task assignment, due dates, status triggers)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Automated welcome email + intake form sent on first payment received</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Brand assets + social credentials tasks auto-assigned with 2-day due date</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">6-Month roadmap auto-assigned to Shota with template pre-linked</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Client account fill-up auto-assigned to PM after roadmap completion</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Strategy call → first shoot auto-assigned chain</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">R&D task auto-assigned to Shota in production pipeline after full onboarding</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">20-reel production pipeline structured with dependencies & due dates</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Frame.io integration — comments create ClickUp task comments via webhook</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Revision count tracked (flags Shota at 3+ revisions per reel)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Deadline Escalation Ladder (3 tiers — yellow → orange → formal warning)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Month template + one-click duplication</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">10+ automated client email templates live in ClickUp</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Google Drive backup synced to all documents</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">AI agent configuration — decision needed: Claude Cowork or Openclaw?</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Slack full migration & deletion (Day 30 target)</span></div>
+    </div>
+
+    <div class="detail-block" style="background:#fff8f8; border-color:#fecaca;">
+      <h3 style="color:var(--red);">🚨 Needs Your Input</h3>
+      <div class="detail-body">→ <strong>AI agent decision needed:</strong> Should the AI assistant be configured with Claude Cowork or Openclaw? This decision will determine which platform gets integrated into the workflow for intelligent task suggestions and escalation handling.</div>
+    </div>
+  </div>
+
+  <!-- ===== P3: KNOWLEDGE BASE ===== -->
+  <div id="p3" class="section">
+    <div class="priority-header">
+      <div class="ph-ring">
+        <div class="big-pct">85%</div>
+        <div class="ring-label">Complete</div>
+      </div>
+      <div class="ph-info">
+        <div class="ph-eyebrow">Priority 3</div>
+        <h1 class="ph-title">📚 Knowledge Base</h1>
+        <div class="ph-counts">7 of 9 deliverables complete</div>
+        <span class="status-badge status-complete">✅ Built</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h3>What Was Built</h3>
+      <div class="detail-body">The Company Wiki is fully interactive — not a static PDF. Every SOP has embedded checklists, ClickUp native video walkthroughs, live links to the relevant tool or template, version history, and role-based views so each team member only sees what's relevant to them.
+
+13 SOPs have been documented in full — covering every major process from Sales to Contract through to International Freelancer Payments. Each one includes step-by-step instructions, video walkthroughs, and links to live templates.
+
+The template library is smart. Fields like {Client_Name}, {Logo}, and {Industry} auto-pull from the intake form so there's no manual copy-pasting ever. The 6-Month Roadmap, Brand Guidelines Generator, Meeting Notes, and R&D Document templates all use this system.</div>
+    </div>
+
+    <div class="detail-block">
+      <h3>Deliverables</h3>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Company Wiki live in ClickUp Docs <a href="https://doc.clickup.com/90131355789/d/h/2ky3yp4d-7353/c18ea330a96e29d" target="_blank" class="di-link">View →</a></span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">13 SOPs documented with checklists, videos & live links</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Editor's Manual (role-based, editors only see their section)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">6-Month Roadmap Template (auto-pulls client info from intake)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Brand Guidelines Generator (form → auto-generated doc with logo, colors, voice)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Meeting Notes Template (pre-linked to strategy call tasks)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">R&D Document Template (pre-linked to R&D tasks)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">⚠️ Scriptwriting SOP — 30-day hard deadline — NOT STARTED. Shota must begin recording himself scriptwriting in Weeks 1–2.</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Client Communication Standards SOP (suggested — not yet started)</span></div>
+    </div>
+
+    <div class="detail-block" style="background:#fff8f8; border-color:#fecaca;">
+      <h3 style="color:var(--red);">🚨 Critical — Hard Deadline</h3>
+      <div class="detail-body">→ <strong>Scriptwriting SOP has a hard 30-day deadline and has not been started.</strong> This is the most critical outstanding knowledge item in the entire system. Shota needs to begin recording himself going through the scriptwriting process in Weeks 1–2. The recording does not need to be perfect — it just needs to exist so it can be documented and turned into a repeatable SOP. Every day this is delayed pushes the completion date further out.</div>
+    </div>
+  </div>
+
+  <!-- ===== P4: HIRING & PAYMENT ===== -->
+  <div id="p4" class="section">
+    <div class="priority-header">
+      <div class="ph-ring">
+        <div class="big-pct">80%</div>
+        <div class="ring-label">Complete</div>
+      </div>
+      <div class="ph-info">
+        <div class="ph-eyebrow">Priority 4</div>
+        <h1 class="ph-title">💰 Hiring & Payment</h1>
+        <div class="ph-counts">10 of 13 deliverables complete</div>
+        <span class="status-badge status-complete">✅ Built</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h3>What Was Built</h3>
+      <div class="detail-body">New hires never need to be hand-held. The moment they fill out the new team member form, their info auto-populates the offer letter. Once signed and added to ClickUp, they receive a welcome email with the wiki, editor manual, and a 5-day onboarding checklist — all self-managed.
+
+The crypto payment system (USDC/USDT on Polygon and Ethereum) has been configured as the primary payment method for international freelancers, cutting payment fees from ~$600/month on PayPal to under $50/month. Wire transfer is documented as backup.
+
+The editor performance scorecard auto-tracks: on-time delivery rate, average reels/day, revisions per video, client satisfaction, and responsiveness. The dashboard shows who's a top performer, who needs a check-in, and who's at capacity.
+
+The HR system includes employee management, recruiting, company culture documentation, and an auto-generated offer letter system that works from a single form submission.</div>
+    </div>
+
+    <div class="detail-block">
+      <h3>Deliverables</h3>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Complete payroll system (team profiles, rates, hours tracking, recurring tasks)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Crypto payment option configured (USDC/USDT – Polygon/Ethereum)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Wire transfer method documented as backup</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Payroll issue log maintained</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">HR system built (employee management, recruiting, company culture)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Auto-generated offer letter system <a href="https://mariamraouf.github.io/offerlettergen/" target="_blank" class="di-link">View →</a></span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">New team member form → auto-populates offer letter on submission <a href="https://app.clickup.com/90131355789/v/fm/2ky3yp4d-10313" target="_blank" class="di-link">View →</a></span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Self-onboarding flow (welcome email → wiki → manual → checklist in 5 days)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Editor performance scorecard (on-time rate, revisions/video, satisfaction)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Capacity heatmap dashboard (top performers, at-risk editors)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Shota's offer letter template needs to be applied to the system</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Crypto wallet working session with Shota (30 mins needed)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">HoneyBook → ClickUp invoice sync automation</span></div>
+    </div>
+
+    <div class="detail-block" style="background:#fff8f8; border-color:#fecaca;">
+      <h3 style="color:var(--red);">🚨 Needs Your Input</h3>
+      <div class="detail-body">→ <strong>Send your existing offer letter template</strong> so it can be applied to the automation system. Without it, the auto-generated offer letters won't reflect your actual terms.
+
+→ <strong>Crypto payment setup needs a 30-minute working session</strong> to finalize the wallet configuration. The system is built — it just needs your wallet connected to go live.
+
+→ <strong>Signature preference needed:</strong> Google Workspace (free) or HoneyBook? This determines how offer letters and contracts are signed and synced.</div>
+    </div>
+  </div>
+
+  <!-- ===== P5: CLIENT EXPERIENCE ===== -->
+  <div id="p5" class="section">
+    <div class="priority-header">
+      <div class="ph-ring">
+        <div class="big-pct">60%</div>
+        <div class="ring-label">In Progress</div>
+      </div>
+      <div class="ph-info">
+        <div class="ph-eyebrow">Priority 5</div>
+        <h1 class="ph-title">🎩 Client Experience</h1>
+        <div class="ph-counts">5 of 9 deliverables complete</div>
+        <span class="status-badge status-progress">🔄 In Progress</span>
+      </div>
+    </div>
+
+    <div class="detail-block">
+      <h3>What Was Built</h3>
+      <div class="detail-body">The brand guidelines generator auto-creates a full ClickUp Doc per client from a single form submission — logo, color swatches, fonts, brand voice, video goals, do's/don'ts, and video reference library — shared with the full project team and attached to every reel task.
+
+A monthly automated client feedback form collects satisfaction scores and comments after each delivery cycle. This feeds directly into the editor performance scorecard so that client satisfaction affects editor ratings in real time.
+
+Email sequences have been fully mapped and templated for: initial onboarding (Day 0 through Week 4), monthly check-ins, and the renewal campaign that runs in Month 5. All 3 sequences are ready to activate.</div>
+    </div>
+
+    <div class="detail-block">
+      <h3>Deliverables</h3>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Brand Guidelines Generator (form → auto-doc with logo, colors, voice, goals)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Monthly client feedback form — automated, sent every month</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Onboarding journey email sequence (Day 0 → Week 4)</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Monthly check-in email sequence</span></div>
+      <div class="deliverable-item"><span class="di-icon">✅</span><span class="di-text di-done">Renewal campaign sequence (Month 5)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Sales follow-up sequence (Day 1, 3, 7, 14 cadence)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Client Guest Portal setup — requires working session with Shota</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">Landing page integration (ClickFunnels/Vendasta → ClickUp)</span></div>
+      <div class="deliverable-item"><span class="di-icon">⬜</span><span class="di-text di-todo">⚠️ CRITICAL: Existing client migration into ClickUp — #1 blocker for 45-day target</span></div>
+    </div>
+
+    <div class="detail-block" style="background:#fff8f8; border-color:#fecaca;">
+      <h3 style="color:var(--red);">🚨 Critical Blockers</h3>
+      <div class="detail-body">→ <strong>Existing client migration is the #1 blocker</strong> for hitting the 45-day target. Every current client needs to be added into ClickUp ASAP. This cannot wait — the longer it's delayed, the more the timeline slips.
+
+→ <strong>Client Guest Portal</strong> requires a working session with Shota to configure the right permissions and set up the client-facing view. This cannot be done without access and decisions from Shota.
+
+→ <strong>Landing page must be built first</strong> before the ClickFunnels → ClickUp webhook can be activated. The webhook is ready to go — it's waiting on the page.</div>
+    </div>
+  </div>
+
+  <!-- ===== BLOCKERS ===== -->
+  <div id="blockers" class="section">
+    <div class="page-eyebrow">Pending Decisions</div>
+    <h1 class="page-title">🚨 Action Required</h1>
+    <p class="page-subtitle">Everything below is waiting on a decision or action from you. Each one is a blocker — meaning something cannot be finished until it's resolved. The system is built. These are the keys.</p>
+
+    <p class="blockers-intro">There are <strong>9 open items</strong> total — 4 high priority (blocking builds) and 5 medium priority (needing a working session or short decision). Resolving all 9 gets the system to 100% before the 45-day mark.</p>
+
+    <div class="blocker-group-title high">🔴 High Priority — Blocking Progress</div>
+
+    <div class="blocker-card high">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>CRM lead capture strategy</strong> — Should leads come in from the landing page only, or should a universal ClickUp form be used across all channels (social, website, referrals)? This decision determines whether one webhook or multiple entry points are built.</div>
+    </div>
+
+    <div class="blocker-card high">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Send your existing offer letter template</strong> — The offer letter automation is live but needs your actual template content applied. Without it, new hires receive a placeholder version, not your real terms.</div>
+    </div>
+
+    <div class="blocker-card high">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Migrate all existing clients into ClickUp — ASAP</strong> — This is the single biggest thing blocking the 45-day target. Every current client needs a folder, tasks, and their data entered. The structure is already built for them. They just need to be added.</div>
+    </div>
+
+    <div class="blocker-card high">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Scriptwriting SOP — begin recording NOW</strong> — 30-day hard deadline. This is the most critical outstanding knowledge item. Shota needs to record himself going through a real scriptwriting session in Weeks 1–2. No fancy production needed — a screen record is fine. The documentation can be written from it afterward.</div>
+    </div>
+
+    <div class="blocker-group-title medium">🟠 Medium Priority — Need a Working Session or Quick Decision</div>
+
+    <div class="blocker-card medium">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>AI agent decision</strong> — Claude Cowork or Openclaw? Once this is decided, the AI assistant can be configured and integrated into the workflow automation system.</div>
+    </div>
+
+    <div class="blocker-card medium">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Signature preference</strong> — Google Workspace (free) or HoneyBook? This determines how offer letters and contracts get signed and synced to ClickUp.</div>
+    </div>
+
+    <div class="blocker-card medium">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Crypto payment working session</strong> — 30 minutes needed to finalize the wallet configuration with Shota. The payment system is built and ready — it just needs the wallet connected to go live and start saving ~$550/month in fees.</div>
+    </div>
+
+    <div class="blocker-card medium">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Client portal working session</strong> — The portal structure is ready to build, but setting the right permissions and client-facing views requires a session with Shota to understand what clients should and shouldn't see.</div>
+    </div>
+
+    <div class="blocker-card medium">
+      <span class="blocker-bullet">!</span>
+      <div class="blocker-text"><strong>Schedule a full walkthrough call</strong> — Everything built needs to be walked through together so you understand every system, can make decisions confidently, and know how to operate it going forward. Book 60–90 minutes.</div>
+    </div>
+
+    <div class="cta-card">
+      <div class="cta-label">Resolve all blockers and we reach</div>
+      <div class="cta-big">100%</div>
+      <div class="cta-sub">The 45-day target is still achievable.<br>Let's get a call on the calendar and close this out. 🚀</div>
+    </div>
+  </div>
+
+  <!-- ===== SOP LIBRARY ===== -->
+  <div id="sops" class="section">
+    <div class="page-eyebrow">Knowledge Base</div>
+    <h1 class="page-title">📄 SOP Library</h1>
+    <p class="page-subtitle">11 of 13 SOPs are complete with embedded checklists, video walkthroughs, and live links. Each doc is role-restricted so team members only see what's relevant to them.</p>
+
+    <div class="detail-block">
+      <h3>All SOPs</h3>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">📈 Sales to Contract</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3073" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">🤝 Onboarding New Client</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3093" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">🔍 Research & Strategy</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3133" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item sop-todo"><span style="font-size:16px;">⬜</span><span class="sop-label">✍️ Scriptwriting — ⚠️ PRIORITY — 30 Day Deadline — NOT STARTED</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3473" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">🎬 Shoot Day Protocol</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3153" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">👀 Client Review Process</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3193" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">✂️ Editing Standards & Deadlines</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3173" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">📅 Content Scheduling</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3213" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">🔄 Monthly Renewal</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3433" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">🎓 New Editor Onboarding (Week 1 Checklist)</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3813" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">👋 New Hire Onboarding (Self-Service 5-Day Plan)</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3833" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item"><span style="font-size:16px;">✅</span><span class="sop-label">💸 International Freelancer Payments via Crypto</span><a href="https://app.clickup.com/90131355789/v/dc/2ky3yp4d-9793/2ky3yp4d-3893" target="_blank" class="di-link">View →</a></div>
+      <div class="sop-item sop-todo"><span style="font-size:16px;">⬜</span><span class="sop-label">💬 Client Communication Standards — Suggested, not yet started</span></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function showSection(id, clickedEl) {
+    // Hide all
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Show target
+    document.getElementById(id).classList.add('active');
+
+    // Highlight nav
+    if (clickedEl) {
+      clickedEl.classList.add('active');
+    } else {
+      // Find nav item by onclick
+      document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+          n.classList.add('active');
+        }
+      });
+    }
+
+    // Scroll to top
+    window.scrollTo(0, 0);
+    return false;
+  }
+</script>
+
+</body>
+</html>
